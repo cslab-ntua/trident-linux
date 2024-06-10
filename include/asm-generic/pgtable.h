@@ -103,6 +103,11 @@ int ptep_clear_flush_young(struct vm_area_struct *vma,
 			   unsigned long address, pte_t *ptep);
 #endif
 
+#ifndef __HAVE_ARCH_PUDP_CLEAR_YOUNG_FLUSH
+int pudp_clear_flush_young(struct vm_area_struct *vma,
+			   unsigned long address, pud_t *pud);
+#endif
+
 #ifndef __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
@@ -730,6 +735,11 @@ static inline int pmd_soft_dirty(pmd_t pmd)
 	return 0;
 }
 
+static inline int pud_soft_dirty(pud_t pud)
+{
+	return 0;
+}
+
 static inline pte_t pte_mksoft_dirty(pte_t pte)
 {
 	return pte;
@@ -1020,6 +1030,11 @@ static inline int pte_protnone(pte_t pte)
 }
 
 static inline int pmd_protnone(pmd_t pmd)
+{
+	return 0;
+}
+
+static inline int pud_protnone(pud_t pud)
 {
 	return 0;
 }

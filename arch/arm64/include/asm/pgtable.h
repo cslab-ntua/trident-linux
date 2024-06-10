@@ -333,12 +333,17 @@ static inline pmd_t pte_pmd(pte_t pte)
 	return __pmd(pte_val(pte));
 }
 
+static inline pud_t pte_pud(pte_t pte)
+{
+	return __pud(pte_val(pte));
+}
+
 static inline pgprot_t mk_sect_prot(pgprot_t prot)
 {
 	return __pgprot(pgprot_val(prot) & ~PTE_TABLE_BIT);
 }
 
-#ifdef CONFIG_NUMA_BALANCING
+#if 0
 /*
  * See the comment in include/asm-generic/pgtable.h
  */
@@ -351,6 +356,11 @@ static inline int pmd_protnone(pmd_t pmd)
 {
 	return pte_protnone(pmd_pte(pmd));
 }
+
+static inline int pud_protnone(pud_t pud)
+{
+	return pte_protnone(pud_pte(pud));
+}
 #endif
 
 /*
@@ -359,24 +369,38 @@ static inline int pmd_protnone(pmd_t pmd)
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
+#define pud_trans_huge(pud)	(pud_val(pud) && !(pud_val(pud) & PUD_TABLE_BIT))
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 #define pmd_present(pmd)	pte_present(pmd_pte(pmd))
+#define pud_present(pud)	pte_present(pud_pte(pud))
 #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+#define pud_dirty(pud)		pte_dirty(pud_pte(pud))
 #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
+#define pud_young(pud)		pte_young(pud_pte(pud))
 #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
+#define pud_wrprotect(pud)	pte_pud(pte_wrprotect(pud_pte(pud)))
 #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+#define pud_mkold(pud)		pte_pud(pte_mkold(pud_pte(pud)))
 #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
+#define pud_mkwrite(pud)	pte_pud(pte_mkwrite(pud_pte(pud)))
 #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+#define pud_mkclean(pud)	pte_pud(pte_mkclean(pud_pte(pud)))
 #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+#define pud_mkdirty(pud)	pte_pud(pte_mkdirty(pud_pte(pud)))
 #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+#define pud_mkyoung(pud)	pte_pud(pte_mkyoung(pud_pte(pud)))
 #define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
+#define pud_mknotpresent(pud)	(__pud(pud_val(pud) & ~PMD_SECT_VALID))
 
 #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+#define pud_thp_or_huge(pud)	(pud_huge(pud) || pud_trans_huge(pud))
 
 #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+#define pud_write(pud)		pte_write(pud_pte(pud))
 
 #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
+#define pud_mkhuge(pud)		(__pud(pud_val(pud) & ~PUD_TABLE_BIT))
 
 #define __pmd_to_phys(pmd)	__pte_to_phys(pmd_pte(pmd))
 #define __phys_to_pmd_val(phys)	__phys_to_pte_val(phys)
@@ -390,8 +414,10 @@ static inline int pmd_protnone(pmd_t pmd)
 #define __phys_to_pud_val(phys)	__phys_to_pte_val(phys)
 #define pud_pfn(pud)		((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT)
 #define pfn_pud(pfn,prot)	__pud(__phys_to_pud_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+#define mk_pud(page,prot)	pfn_pud(page_to_pfn(page),prot)
 
 #define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
+#define set_pud_at(mm, addr, pudp, pud)	set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud))
 
 #define __pgd_to_phys(pgd)	__pte_to_phys(pgd_pte(pgd))
 #define __phys_to_pgd_val(phys)	__phys_to_pte_val(phys)
@@ -611,6 +637,11 @@ static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
 	return pte_pmd(pte_modify(pmd_pte(pmd), newprot));
 }
 
+static inline pud_t pud_modify(pud_t pud, pgprot_t newprot)
+{
+	return pte_pud(pte_modify(pud_pte(pud), newprot));
+}
+
 #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 extern int ptep_set_access_flags(struct vm_area_struct *vma,
 				 unsigned long address, pte_t *ptep,
@@ -625,6 +656,14 @@ static inline int pmdp_set_access_flags(struct vm_area_struct *vma,
 	return ptep_set_access_flags(vma, address, (pte_t *)pmdp, pmd_pte(entry), dirty);
 }
 #endif
+
+#define __HAVE_ARCH_PUDP_SET_ACCESS_FLAGS
+static inline int pudp_set_access_flags(struct vm_area_struct *vma,
+					unsigned long address, pud_t *pudp,
+					pud_t entry, int dirty)
+{
+	return ptep_set_access_flags(vma, address, (pte_t *)pudp, pud_pte(entry), dirty);
+}
 
 /*
  * Atomic pte/pmd modifications.
@@ -659,6 +698,14 @@ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 					    pmd_t *pmdp)
 {
 	return ptep_test_and_clear_young(vma, address, (pte_t *)pmdp);
+}
+
+#define __HAVE_ARCH_PUDP_TEST_AND_CLEAR_YOUNG
+static inline int pudp_test_and_clear_young(struct vm_area_struct *vma,
+					    unsigned long address,
+					    pud_t *pudp)
+{
+	return ptep_test_and_clear_young(vma, address, (pte_t *)pudp);
 }
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
@@ -716,6 +763,13 @@ static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
 {
 	return __pmd(xchg_relaxed(&pmd_val(*pmdp), pmd_val(pmd)));
 }
+
+#define pudp_establish pudp_establish
+static inline pud_t pudp_establish(struct vm_area_struct *vma,
+		unsigned long address, pud_t *pudp, pud_t pud)
+{
+	return __pud(xchg_relaxed(&pud_val(*pudp), pud_val(pud)));
+}
 #endif
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
@@ -771,6 +825,7 @@ static inline void update_mmu_cache(struct vm_area_struct *vma,
 }
 
 #define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+#define update_mmu_cache_pud(vma, address, pud) do { } while (0)
 
 #define kc_vaddr_to_offset(v)	((v) & ~VA_START)
 #define kc_offset_to_vaddr(o)	((o) | VA_START)

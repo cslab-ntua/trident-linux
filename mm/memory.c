@@ -4922,8 +4922,8 @@ int tr_exchange_pfn_range(struct mm_struct *mm, unsigned long *map1,
 {
 	int i, failed = 0;
 
-	mmu_notifier_invalidate_ranges_start(mm, map1, 512, size);
-	mmu_notifier_invalidate_ranges_start(mm, map2, 512, size);
+	//mmu_notifier_invalidate_ranges_start(mm, map1, 512, size);
+	//mmu_notifier_invalidate_ranges_start(mm, map2, 512, size);
 	for (i = 0; i < PAGE_SIZE / sizeof(unsigned long); i++) {
 		if (tr_exchange_pfns(mm, map1[i], map2[i], size, false)) {
 			result[i] = -1;
@@ -4931,8 +4931,8 @@ int tr_exchange_pfn_range(struct mm_struct *mm, unsigned long *map1,
 		} else
 			result[i] = 0;
 	}
-	mmu_notifier_invalidate_ranges_end(mm, map1, 512, size);
-	mmu_notifier_invalidate_ranges_end(mm, map2, 512, size);
+	//mmu_notifier_invalidate_ranges_end(mm, map1, 512, size);
+	//mmu_notifier_invalidate_ranges_end(mm, map2, 512, size);
 	return failed;
 }
 EXPORT_SYMBOL(tr_exchange_pfn_range);

@@ -151,5 +151,6 @@ pmd_populate(struct mm_struct *mm, pmd_t *pmdp, pgtable_t ptep)
 	__pmd_populate(pmdp, page_to_phys(ptep), PMD_TYPE_TABLE);
 }
 #define pmd_pgtable(pmd) pmd_page(pmd)
+#define pud_pmdtable(pud) pud_page(pud)
 
 #endif

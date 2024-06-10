@@ -975,9 +975,12 @@ static void __collapse_huge_page_hc(pte_t *pte, struct page *page,
 	}
 
 	/* make the hypercall here */
+#if 0
 	ret = kvm_hypercall4(KVM_HC_EXCHANGE_PFN_RANGE, page_to_pfn(map1_page),
 				page_to_pfn(map2_page), page_to_pfn(res_page),
 				PAGE_SIZE);
+#endif
+
 	total++;
 	if (ret)
 		printk("Hypercall Result: %d Total: %d Failed: %d\n", ret, total, ++fail);
@@ -1055,11 +1058,13 @@ static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
 		} else {
 			src_page = pte_page(pteval);
 			if (khugepaged_collapse_via_hypercall) {
+#if 0
 				if (kvm_hypercall3(KVM_HC_EXCHANGE_PFNS,
 					page_to_pfn(page), page_to_pfn(src_page),
 					PAGE_SIZE)) {
 					copy_user_highpage(page, src_page, address, vma);
 				}
+#endif
 			} else
 				copy_user_highpage(page, src_page, address, vma);
 			VM_BUG_ON_PAGE(page_mapcount(src_page) != 1, src_page);
@@ -1617,9 +1622,11 @@ static inline bool __collapse_pud_page_hc(struct mm_struct *mm, struct vm_area_s
 	if (khugepaged_verbose)
 	printk("Checking hypercall: %d %d %d\n", nr_pmds, nr_ptes, nr_none);
 	if (nr_pmds > 1) {
+#if 0
 		ret = kvm_hypercall4(KVM_HC_EXCHANGE_PFN_RANGE, page_to_pfn(map1_page),
 					page_to_pfn(map2_page), page_to_pfn(res_page),
 					HPAGE_PMD_SIZE);
+#endif
 		printk("%s: Hypercall result: %d PMDs: %d\n", __func__, ret, nr_pmds);
 		if (ret)
 			skip = true;

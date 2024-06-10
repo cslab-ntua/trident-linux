@@ -119,6 +119,19 @@ int pmdp_clear_flush_young(struct vm_area_struct *vma,
 }
 #endif
 
+#ifndef __HAVE_ARCH_PUDP_CLEAR_YOUNG_FLUSH
+int pudp_clear_flush_young(struct vm_area_struct *vma,
+			   unsigned long address, pud_t *pud)
+{
+	int young;
+	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
+	young = pudp_test_and_clear_young(vma, address, pud);
+	if (young)
+		flush_pud_tlb_range(vma, address, address + HPAGE_PUD_SIZE);
+	return young;
+}
+#endif
+
 #ifndef __HAVE_ARCH_PMDP_HUGE_CLEAR_FLUSH
 pmd_t pmdp_huge_clear_flush(struct vm_area_struct *vma, unsigned long address,
 			    pmd_t *pmdp)

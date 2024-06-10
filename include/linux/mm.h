@@ -1920,6 +1920,18 @@ static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
 	return ptlock_ptr(pmd_to_page(pmd));
 }
 
+/*
+ * No scalability reason to split PUD locks yet, but follow the same pattern
+ * as the PMD locks to make it easier if we decide to.  The VM should not be
+ * considered ready to switch to split PUD locks yet; there may be places
+ * which need to be converted from page_table_lock.
+ */
+static inline spinlock_t *pud_lockptr(struct mm_struct *mm, pud_t *pud)
+{
+	//This is the time to change this lock and make it more scalable.
+	return ptlock_ptr(pud_to_page(pud));
+}
+
 static inline bool pgtable_pmd_page_ctor(struct page *page)
 {
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
@@ -1945,6 +1957,18 @@ static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
 	return &mm->page_table_lock;
 }
 
+/*
+ * No scalability reason to split PUD locks yet, but follow the same pattern
+ * as the PMD locks to make it easier if we decide to.  The VM should not be
+ * considered ready to switch to split PUD locks yet; there may be places
+ * which need to be converted from page_table_lock.
+ */
+static inline spinlock_t *pud_lockptr(struct mm_struct *mm, pud_t *pud)
+{
+	//This is the time to change this lock and make it more scalable.
+	return &mm->page_table_lock;
+}
+
 static inline bool pgtable_pmd_page_ctor(struct page *page) { return true; }
 static inline void pgtable_pmd_page_dtor(struct page *page) {}
 
@@ -1957,18 +1981,6 @@ static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
 	spinlock_t *ptl = pmd_lockptr(mm, pmd);
 	spin_lock(ptl);
 	return ptl;
-}
-
-/*
- * No scalability reason to split PUD locks yet, but follow the same pattern
- * as the PMD locks to make it easier if we decide to.  The VM should not be
- * considered ready to switch to split PUD locks yet; there may be places
- * which need to be converted from page_table_lock.
- */
-static inline spinlock_t *pud_lockptr(struct mm_struct *mm, pud_t *pud)
-{
-	//This is the time to change this lock and make it more scalable.
-	return ptlock_ptr(pud_to_page(pud));
 }
 
 static inline spinlock_t *pud_lock(struct mm_struct *mm, pud_t *pud)
